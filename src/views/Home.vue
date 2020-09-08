@@ -16,7 +16,7 @@ export default {
   data() {
     return {
       user: 'zht1',
-      password: '123451'
+      password: '123'
     }
   },
   mounted() {
