@@ -560,8 +560,6 @@ export default {
         bounds: new AMap.Bounds(
           [118.286905, 29.170618],
           [120.390334, 30.605403]
-          // [116.327911, 39.939229],
-          // [116.342659, 39.946275]
         ),
         zooms: [7, 15]
       }); 1
@@ -608,7 +606,6 @@ export default {
       })
     },
     handlePolygon(result) {
-      console.log(result)
       const bounds = result.districtList[0].boundaries
       if (bounds) {
         for (let i = 0, l = bounds.length; i < l; i++) {
