@@ -25,7 +25,7 @@ export default {
     return {
       user: 'zht1',
       password: '123',
-      name: 'zht',
+      name: 'zht11111',
       number: 0
     }
   },
