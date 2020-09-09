@@ -16,7 +16,8 @@ export default {
   data() {
     return {
       user: 'zht1',
-      password: '123'
+      password: '123',
+      name: '张海涛'
     }
   },
   mounted() {
