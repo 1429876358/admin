@@ -1,5 +1,7 @@
 <template>
   <div class="login">
+    <div>{{ count }}</div>
+    <div>{{ counts }}</div>
     <!-- <img alt="Vue logo" src="../assets/logo.png"> -->
     <!-- <HelloWorld msg="Welcome to Your Vue.js App" /> -->
   </div>
@@ -11,7 +13,17 @@
 
 export default {
   name: 'Login',
-  components: {
+  data() {
+    return {
+      count: '',
+      counts: ''
+    }
+  },
+  mounted() {
+    this.count = this.$store.state.todo[0].value
+    this.counts = this.$store.getters.doneTodos
+  },
+  methods: {
 
   }
 }
