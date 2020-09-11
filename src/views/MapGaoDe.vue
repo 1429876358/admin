@@ -558,19 +558,31 @@ export default {
         // url: '../assets/logo.png',
         url: 'http://json.zhihuihedao.cn/common/mapbackground.png',
         bounds: new AMap.Bounds(
-          [118.286905, 29.170618],
-          [120.390334, 30.605403]
+          [118.346812, 29.189361],
+          [120.390334, 30.563138]
         ),
-        zooms: [7, 15]
+        zooms: [5, 12]
       }); 1
       this.map = new AMap.Map('container', {
-        center: [120.260334014893, 30.1668033599535],
+        zoom: 18,
+        center: [120.390334, 30.563138],
         resizeEnable: true,
-        zoom: 15,
         layers: [
           new AMap.TileLayer(),
           imageLayer
-        ]
+        ],
+        mapStyle: 'amap://styles/blue' // 设置地图的显示样式
+      })
+      this.map.on('click', function(ev) {
+        // 触发事件的对象
+        // var target = ev.target
+        // 触发事件的地理坐标，AMap.LngLat 类型
+        var lnglat = ev.lnglat
+        // 触发事件的像素坐标，AMap.Pixel 类型
+        // var pixel = ev.pixel
+        // // 触发事件类型
+        // var type = ev.type
+        console.log(lnglat)
       })
       // 添加地图相关控件
       AMap.plugin(['AMap.ToolBar', 'AMap.Scale'], function() {
@@ -597,7 +609,7 @@ export default {
       // 弹泡内容结构
       this.popupcontent()
       // 遍历数据坐标展示所有矢量点
-      this.addMarkers()
+      // this.addMarkers()
       // 实例化信息窗体
       this.infoWindow = new AMap.InfoWindow({
         isCustom: true, // 使用自定义窗体
@@ -606,6 +618,7 @@ export default {
       })
     },
     handlePolygon(result) {
+      console.log(result)
       const bounds = result.districtList[0].boundaries
       if (bounds) {
         for (let i = 0, l = bounds.length; i < l; i++) {
@@ -640,8 +653,7 @@ export default {
           ),
           // position: [Number(this.datalist[i].startLon), Number(this.datalist[i].startLat)],
           // 将一张图片的地址设置为 icon
-          icon:
-            '//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png',
+          icon: '//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png',
           // 设置了 icon 以后，设置 icon 的偏移量，以 icon 的 [center bottom] 为原点
           offset: new AMap.Pixel(-13, -30)
         })

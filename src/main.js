@@ -6,9 +6,11 @@ import ElementUI from 'element-ui'
 import echarts from 'echarts'
 import 'element-ui/lib/theme-chalk/index.css'
 import axios from 'axios'
+import animated from 'animate.css' // npm install animate.css --save安装，在引入
 
 Vue.config.productionTip = false
 Vue.use(ElementUI)
+Vue.use(animated)
 Vue.prototype.echarts = echarts
 Vue.prototype.axios = axios
 new Vue({
