@@ -740,7 +740,7 @@ export default {
   bottom: 0;
   left: 0;
   width: auto;
-  padding: 0
+  padding: 0;
 }
 .content-window-card p {
   height: 2rem

@@ -10,20 +10,20 @@ const routes = [
     name: 'Home',
     component: Home
   },
-  {
-    path: '/about',
-    name: 'MapGaoDe',
-    component: () => import('../views/MapGaoDe.vue'),
-    children: [
-      {
-        path: 'homechilren',
-        name: 'HomeChilren',
-        component: () => {
-          import ('../views/HomeChilren.vue')
-        }
-      }
-    ]
-  },
+  // {
+  //   path: '/about',
+  //   name: 'MapGaoDe',
+  //   component: () => import('../views/MapGaoDe.vue'),
+  //   children: [
+  //     {
+  //       path: 'homechilren',
+  //       name: 'HomeChilren',
+  //       component: () => {
+  //         import ('../views/HomeChilren.vue')
+  //       }
+  //     }
+  //   ]
+  // },
   {
     path: '/login',
     name: 'Login',

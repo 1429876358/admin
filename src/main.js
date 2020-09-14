@@ -7,6 +7,7 @@ import echarts from 'echarts'
 import 'element-ui/lib/theme-chalk/index.css'
 import axios from 'axios'
 import animated from 'animate.css' // npm install animate.css --save安装，在引入
+import './assets/font/font.css'
 
 Vue.config.productionTip = false
 Vue.use(ElementUI)

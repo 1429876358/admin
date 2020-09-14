@@ -17,7 +17,7 @@
 // import HelloWorld from '@/components/HelloWorld.vue'
 import { mapGetters } from 'vuex'
 export default {
-  name: 'Home',
+  name: 'HomePage',
   components: {
     // HelloWorld
   },
