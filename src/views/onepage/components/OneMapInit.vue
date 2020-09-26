@@ -1,10 +1,6 @@
 <template>
-  <div style="width:100%; height:100%">
+  <div style="width:100%; height:100%;background: #0e2339;">
     <div id="container" style="width:100%; height:100%" />
-    <div class="input-card">
-      <el-button type="info" @click="removeMarkers()">清除标记点</el-button>
-      <el-button type="primary" @click="addMarkers()">添加标记点</el-button>
-    </div>
   </div>
 </template>
 <script>
@@ -551,41 +547,103 @@ export default {
     this.init()
   },
   methods: {
+    // 监听图层变化
+    mapZoomend() {
+      if (this.map.getZoom() < 9) {
+        console.log(this.map.getZoom())
+      } else {
+        console.log(this.map.getZoom())
+      }
+    },
+    getNum() {
+      reservoirNum(this.queryNum).then(res => {
+        if (res === []) { this.$emit('infoShow', { 'isShow': true, 'poop_height': 0 }) }
+
+        this.query = this.queryList
+
+        res.forEach((marker) => {
+          marker = new AMap.Marker({
+
+            content: `<div style="color:#fff;width:34px;height:43px;background:url('http://192.168.1.128:9528/images/remarks/default.png') center no-repeat;background-size: cover;text-align: center;font-size:14px;padding-top:10px;">${marker.count}</div>`,
+
+            areaId: marker.areaId, // 增加行政区划ID
+
+            areaName: marker.areaName,
+
+            position: [marker.lon, marker.lat],
+
+            offset: new AMap.Pixel(-13, -30),
+
+            animation: 'AMAP_ANIMATION_DROP',
+
+            clickable: true
+
+          })
+
+          // 给标记点添加点击事件
+
+          marker.on('click', (e) => {
+            this.$emit('areaInfo', { 'areaId': e.target.w.areaId, 'areaName': e.target.w.areaName })
+
+            this.removeMarkers()
+
+            this.map.setZoomAndCenter(10, [e.lnglat.lng, e.lnglat.lat])
+
+            this.query.areaId = e.target.w.areaId
+
+            this.getInfo()
+          })
+
+          this.markers.push(marker)
+        })
+
+        this.addMarkers()
+      })
+    },
     init() {
       var that = this
       // 初始化地图
-      that.map = new AMap.Map('container', {
-        center: [120.260334014893, 30.1668033599535],
-        resizeEnable: true,
-        zoom: 10
+      var imageLayer = new AMap.ImageLayer({
+        url: 'http://json.zhihuihedao.cn/common/mapbackground1.png',
+        bounds: new AMap.Bounds(
+          [118.346812, 29.189361],
+          [120.722108, 30.563138]
+        ),
+        zooms: [5, 12]
       })
+      this.map = new AMap.Map('container', {
+        zoom: 9,
+        center: [118.65209961, 29.86855625],
+        resizeEnable: false,
+        layers: [
+          new AMap.TileLayer(),
+          imageLayer
+        ],
+        mapStyle: 'amap://styles/grey'
+      })
+      this.map.on('zoomend', this.mapZoomend)
       // 添加地图相关控件
       AMap.plugin(['AMap.ToolBar', 'AMap.Scale'], function() {
-        that.map.addControl(new AMap.ToolBar())
         that.map.addControl(new AMap.Scale())
       })
       // 获取边界坐标点
       AMap.plugin('AMap.DistrictSearch', () => {
         var districtSearch = new AMap.DistrictSearch({
         // 关键字对应的行政区级别，共有5种级别
-          level: 'province',
+          level: 'city',
           //  是否显示下级行政区级数，1表示返回下一级行政区
           subdistrict: 0,
           // 返回行政区边界坐标点
           extensions: 'all'
         })
-
         // 搜索所有省/直辖市信息
-        districtSearch.search('广东', (status, result) => {
+        districtSearch.search('杭州市', (status, result) => {
           // 查询成功时，result即为对应的行政区信息
           this.handlePolygon(result)
         })
       })
       // 弹泡内容结构
       this.popupcontent()
-      // 遍历数据坐标展示所有矢量点
-      this.addMarkers()
-      // 实例化信息窗体
       this.infoWindow = new AMap.InfoWindow({
         isCustom: true, // 使用自定义窗体
         // content: 'aaa',
@@ -593,7 +651,6 @@ export default {
       })
     },
     handlePolygon(result) {
-      console.log(result)
       const bounds = result.districtList[0].boundaries
       if (bounds) {
         for (let i = 0, l = bounds.length; i < l; i++) {
@@ -610,7 +667,7 @@ export default {
             console.log(e)
           })
         }
-        // 地图自适应
+        // 地图自适应(自动居中)
         // this.map.setFitView()
       }
     },
@@ -628,8 +685,8 @@ export default {
           ),
           // position: [Number(this.datalist[i].startLon), Number(this.datalist[i].startLat)],
           // 将一张图片的地址设置为 icon
-          icon:
-            '//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png',
+          // icon: '//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png',
+          icon: '../assets/homepage/mappic/warn.png',
           // 设置了 icon 以后，设置 icon 的偏移量，以 icon 的 [center bottom] 为原点
           offset: new AMap.Pixel(-13, -30)
         })
@@ -661,7 +718,6 @@ export default {
     createInfoWindow() {
       var info = document.createElement('div')
       info.className = 'custom-info input-card content-window-card'
-
       // 可以通过下面的方式修改自定义窗体的宽高
       // info.style.width = '400px'
       // 定义顶部标题
@@ -700,7 +756,7 @@ export default {
   }
 }
 </script>
-<style>
+<style lang='scss' scoped>
 .amap-icon img {
   width: 25px;
   height: 34px
@@ -716,7 +772,7 @@ export default {
   bottom: 0;
   left: 0;
   width: auto;
-  padding: 0
+  padding: 0;
 }
 .content-window-card p {
   height: 2rem

@@ -1,40 +1,25 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import getters from './getters'
 
 Vue.use(Vuex)
 
-var store = new Vuex.Store({
-  state: {
-    todo: [
-      { name: 'zht1', value: '1' },
-      { name: 'zht2', value: '2' }
-    ],
-    todos: [
-      { name: 'zht0', value: 0 },
-      { name: 'zht1', value: 1 }
-    ],
-    doneTodos_onevalue: 100,
-    doneTodos_twovalue: 200,
-    doneTodos_threevalue: 300
-  },
-  getters: {
-    doneTodos: state => {
-      console.log(state.todos.filter(todo => todo.value))
-      return state.todos.filter(todo => todo.value)[0].value
-    },
-    doneTodos_one: state => {
-      return state.doneTodos_onevalue
-    },
-    doneTodos_two: state => {
-      return state.doneTodos_twovalue
-    },
-    doneTodos_three: state => {
-      return state.doneTodos_threevalue
-    }
-  },
-  mutations: {},
-  actions: {},
-  modules: {}
+// https://webpack.js.org/guides/dependency-management/#requirecontext
+const modulesFiles = require.context('./modules', true, /\.js$/)
+
+// you do not need `import app from './modules/app'`
+// it will auto require all vuex module from modules file
+const modules = modulesFiles.keys().reduce((modules, modulePath) => {
+  // set './app.js' => 'app'
+  const moduleName = modulePath.replace(/^\.\/(.*)\.\w+$/, '$1')
+  const value = modulesFiles(modulePath)
+  modules[moduleName] = value.default
+  return modules
+}, {})
+
+const store = new Vuex.Store({
+  modules,
+  getters
 })
 
 export default store

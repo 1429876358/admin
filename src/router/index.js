@@ -1,33 +1,13 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
   {
-    path: '/',
-    name: 'Home',
-    component: Home
-  },
-  // {
-  //   path: '/about',
-  //   name: 'MapGaoDe',
-  //   component: () => import('../views/MapGaoDe.vue'),
-  //   children: [
-  //     {
-  //       path: 'homechilren',
-  //       name: 'HomeChilren',
-  //       component: () => {
-  //         import ('../views/HomeChilren.vue')
-  //       }
-  //     }
-  //   ]
-  // },
-  {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/userinfo/login.vue')
+    component: () => import('../views/login/index')
 
   },
   {
@@ -38,7 +18,7 @@ const routes = [
   {
     path: '/homepage',
     name: 'HomePage',
-    component: () => import('../views/HomePage.vue')
+    component: () => import('../views/homepage/index.vue')
   }
 ]
 

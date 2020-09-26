@@ -19,3 +19,20 @@ new Vue({
   store,
   render: h => h(App)
 }).$mount('#app')
+
+router.beforeEach((to, from, next) => {
+  // if (to.meta.requireAuth) { // 判断该路由是否需要登录权限
+  if (localStorage.getItem('JWToken')) { // 判断本地是否存在access_token
+    next({
+      path: '/homepage'
+    })
+  } else {
+    if (to.path === '/login') {
+      next()
+    } else {
+      next({
+        path: '/login'
+      })
+    }
+  }
+})

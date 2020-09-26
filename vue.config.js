@@ -23,25 +23,29 @@ module.exports = {
   // 如果你不需要生产环境的 source map，可以将其设置为 false 以加速生产环境构建。
   productionSourceMap: false,
   // webpack-dev-server 相关配置
-  // devServer: {
-  //   port: 8081,
-  //   open: false,
-  //   overlay: {
-  //     warnings: false,
-  //     errors: true
-  //   },
-  //   proxy: {
-  //     // 所有api/开头的转入代理
-  //     '/': {
-  //       // 要访问接口的地址
-  //       // target: 'http://192.168.1.120:9999', // 余乔龙
-  //       // target: 'http://47.110.69.252', // 唐百城
-  //       target: 'http://sk.zhihuihedao.cn', // 线上地址
-  //       changeOrigin: true,
-  //       ws: false
-  //     }
-  //   }
-  // },
+  devServer: {
+    // https://cloud.tencent.com/developer/section/1477376#stage-100061407 解决开启 history 模式后 刷新页面的BUG
+    historyApiFallback: true,
+    // https: false,
+    // host: '192.168.1.110',
+    port: 9526,
+    open: false,
+    overlay: {
+      warnings: false,
+      errors: false
+    },
+    proxy: {
+      // 所有api/开头的转入代理
+      '/dev-api': {
+        target: 'http://192.168.1.126/',
+        // target: 'http://47.110.69.252/',
+        // target: 'http://sk.zhihuihedao.cn',
+        changeOrigin: true,
+        ws: false,
+        pathRewrite: { '^/dev-api': '' }
+      }
+    }
+  },
   chainWebpack: config => {
     // 修复HMR
     config.resolve.symlinks(true)

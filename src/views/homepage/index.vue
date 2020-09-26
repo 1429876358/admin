@@ -7,7 +7,7 @@
         <span :class="{iconactive:tabActive==2}" /><span>一张图</span></div>
       <div class="timepeal">2020-03-19 14:46</div>
       <div class="weather">
-        <div><img src="../assets/homepage/header/header_06.png"><span>小雨</span></div>
+        <div><img src="@/assets/homepage/header/header_06.png"><span>小雨</span></div>
         <div><span>29C</span><span>(杭州当地)</span></div>
         <div><span>500mm</span><span>(降雨量)</span></div>
       </div>
@@ -16,8 +16,8 @@
       <div class="bottommove" />
     </div>
     <div v-if="tabActive==1" class="maincontent">
-      <mapgaode />
-      <!-- <div class="titlepre"><img src="../assets/homepage/header/headermiddle.png"></div> -->
+      <mapgaode ref="mapcoordinate" :imgindex="tabmapactive" :coordinatelist="warnlist" :watercoordinatelist="watercoordinatelist" />
+      <!-- <div class="titlepre"><img src="@/assets/homepage/header/headermiddle.png"></div> -->
       <div class="panelbg panelone" />
       <div class="panelbg paneltwo" />
       <div class="panelbg panelthree" />
@@ -33,16 +33,13 @@
           <div>查看详情 <i class="el-icon-arrow-right" /></div>
         </div>
         <div>
-          <div><div>大型工程</div><div>071</div><div /></div>
-          <div><div>中型工程</div><div>004</div><div /></div>
-          <div><div>小(1)工程</div><div>019</div><div /></div>
-          <div><div>小(2)工程</div><div>000</div><div /></div>
-          <p class="p1">
-            <!-- <span>094</span>
-            <span>总工程数</span> -->
-          </p>
+          <div><div>大型工程</div><div v-text="projectscope[0]?projectscope[0]:'0'" /><div /></div>
+          <div><div>中型工程</div><div v-text="projectscope[1]?projectscope[1]:'0'" /><div /></div>
+          <div><div>小(1)工程</div><div v-text="projectscope[2]?projectscope[2]:'0'" /><div /></div>
+          <div><div>小(2)工程</div><div v-text="projectscope[3]?projectscope[3]:'0'" /><div /></div>
+          <p class="p1" />
           <p class="p2">
-            <span>094</span>
+            <span v-text="projectscopetotal">094</span>
             <span>总工程数</span>
           </p>
         </div>
@@ -71,6 +68,14 @@
           </div>
           <div>查看详情 <i class="el-icon-arrow-right" /></div>
         </div>
+        <div>
+          <div id="pieonecharts" class="pieonecharts" />
+          <div class="imgrate" />
+          <div class="data_box">
+            <span v-text="itemtitle" />
+            <span v-if="itemvalue!=''">{{ itemvalue }}<span style="font-size:14px;font-family: initial; ">座</span></span>
+          </div>
+        </div>
       </div>
       <div class="fl box_four">
         <div>
@@ -84,11 +89,11 @@
         <div class="waternumber">
           <div>
             <span>正常</span>
-            <span>60</span>
+            <span v-text="normalnumber">60</span>
           </div>
           <div>
             <span>告警</span>
-            <span>40</span>
+            <span v-text="wornnumber">40</span>
           </div>
         </div>
         <div class="waterback" />
@@ -105,11 +110,11 @@
         <div class="waternumber">
           <div>
             <span><i class="el-icon-s-claim" /> 已完成任务数</span>
-            <span>60</span>
+            <span v-text="evalStatusnumber">60</span>
           </div>
           <div>
             <span><i class="el-icon-discover" /> 计划完成任务数</span>
-            <span>40</span>
+            <span v-text="evalStatustotalnumber">40</span>
           </div>
         </div>
       </div>
@@ -121,17 +126,77 @@
           </div>
           <div>查看详情 <i class="el-icon-arrow-right" /></div>
         </div>
+        <div>
+          <el-radio-group v-model="realtimeinformationvalue" @change="radiochangevalue">
+            <el-radio :label="1">水情信息</el-radio>
+            <el-radio :label="2">雨情信息</el-radio>
+            <el-radio :label="3">预警信息</el-radio>
+            <el-radio :label="4">视频监控</el-radio>
+          </el-radio-group>
+        </div>
+        <div style="height:230px" @mouseenter="mouseenter" @mouseleave="mouseleave">
+          <el-table v-if="realtimeinformationvalue==1" :data="tableData" style="width: 100%;height:233px" :header-cell-style="{'color':'#fff','height':'35px'}">
+            <el-table-column
+              prop="reservoirName"
+              label="站点"
+            />
+            <el-table-column
+              prop="reservoirRealLevel"
+              label="水位"
+            />
+            <el-table-column
+              prop="reservoirFloodLevel"
+              label="限讯水位"
+            />
+            <el-table-column
+              prop="recordTime"
+              label="时间"
+            />
+          </el-table>
+          <el-table v-if="realtimeinformationvalue==2" :data="tableData" style="width: 100%;height:233px" :header-cell-style="{'color':'#fff','height':'35px'}">
+            <el-table-column
+              prop="reservoirName"
+              label="站点"
+            />
+            <el-table-column
+              prop="rainfallNum"
+              label="主站雨量"
+            />
+            <el-table-column
+              prop="recordTime"
+              label="时间"
+            />
+          </el-table>
+          <el-table v-if="realtimeinformationvalue==3" :data="tableData" style="width: 100%;height:233px" :header-cell-style="{'color':'#fff','height':'35px'}">
+            <el-table-column
+              prop="reservoirName"
+              label="站点"
+            />
+            <el-table-column
+              prop="reservoirRealLevel"
+              label="实时水位"
+            />
+            <el-table-column
+              prop="reservoirFloodLevel"
+              label="汛限水位"
+            />
+            <el-table-column
+              prop="recordTime"
+              label="时间"
+            />
+          </el-table>
+        </div>
       </div>
       <div class="middle_serach">
-        <el-select v-model="regionvalue" size="small" placeholder="请选择区划">
+        <el-select v-model="regionvalue" size="small" placeholder="请选择区划" @change="regionvaluechange">
           <el-option
             v-for="item in regionoptions"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id"
+            :key="item.areaId"
+            :label="item.areaName"
+            :value="item.areaId"
           />
         </el-select>
-        <el-select v-model="watergradevalue" size="small" placeholder="选择水库等级">
+        <el-select v-model="watergradevalue" size="small" placeholder="选择水库等级" @change="watergradevaluechange">
           <el-option
             v-for="item in watergradeoptions"
             :key="item.value"
@@ -140,81 +205,111 @@
           />
         </el-select>
         <div class="selectmessage">
-          <div>
+          <!-- <div>
             <div>水库总数</div>
-            <div><span>884</span><i class="el-select__caret el-input__icon el-icon-arrow-up" /></div>
-          </div>
+            <div><span v-text="watertotalnumber" /></div>
+          </div> -->
           <div>
             <div>水库</div>
-            <div><span>23</span><i class="el-select__caret el-input__icon el-icon-arrow-up" /></div>
+            <div><span v-text="waternumber[0]" /></div>
           </div>
           <div>
             <div>山塘</div>
-            <div><span>561</span><i class="el-select__caret el-input__icon el-icon-arrow-up" /></div>
+            <div><span v-text="waternumber[1]" /></div>
           </div>
           <div>
             <div>小水电</div>
-            <div><span>71</span><i class="el-select__caret el-input__icon el-icon-arrow-up" /></div>
+            <div><span v-text="waternumber[2]" /></div>
           </div>
           <div>
             <div>告警</div>
-            <div><span>97</span><i class="el-select__caret el-input__icon el-icon-arrow-up" /></div>
+            <div><span>2</span></div>
           </div>
         </div>
-        <div class="radiobox">
-          <el-radio-group v-model="watertyperadiovalue">
-            <el-radio :label="1" />
-            <el-radio :label="2" />
+        <!-- <div class="radiobox">
+          <el-radio-group v-model="watertyperadiovalue" @change="watertypechange">
             <el-radio :label="3" />
+            <el-radio :label="5" />
+            <el-radio :label="6" />
             <el-radio :label="4" />
           </el-radio-group>
-        </div>
-        <el-input v-model="serchinputvalue" class="serchinputvalue" size="small" suffix-icon="el-icon-search" placeholder="搜索" />
+        </div> -->
+        <el-input v-model="serchinputvalue" class="serchinputvalues" size="small" clearable suffix-icon="el-icon-search" placeholder="搜索" @change="waternamevalue" />
       </div>
       <div class="middletab">
         <div :class="tabmapactive==1?'activetabindex':'noactivetabindex'" @click="inittabmapactive(1)">
-          <div><img v-if="tabmapactive!=1" src="../assets/homepage/mappic/water_01.png"><img v-else src="../assets/homepage/mappic/water_02.png"></div>
+          <div><img v-if="tabmapactive!=1" src="@/assets/homepage/mappic/water_01.png"><img v-else src="@/assets/homepage/mappic/water_02.png"></div>
           <div>水库分布</div>
         </div>
         <div :class="tabmapactive==2?'activetabindex':'noactivetabindex'" @click="inittabmapactive(2)">
-          <div><img v-if="tabmapactive!=2" src="../assets/homepage/mappic/water_03.png"><img v-else src="../assets/homepage/mappic/water_04.png"></div>
+          <div><img v-if="tabmapactive!=2" src="@/assets/homepage/mappic/water_03.png"><img v-else src="@/assets/homepage/mappic/water_04.png"></div>
           <div>水库水位</div>
         </div>
         <div :class="tabmapactive==3?'activetabindex':'noactivetabindex'" @click="inittabmapactive(3)">
-          <div><img v-if="tabmapactive!=3" src="../assets/homepage/mappic/water_05.png"><img v-else src="../assets/homepage/mappic/water_06.png"></div>
+          <div><img v-if="tabmapactive!=3" src="@/assets/homepage/mappic/water_05.png"><img v-else src="@/assets/homepage/mappic/water_06.png"></div>
           <div>在建项目</div>
         </div>
         <div :class="tabmapactive==4?'activetabindex':'noactivetabindex'" @click="inittabmapactive(4)">
-          <div><img v-if="tabmapactive!=4" src="../assets/homepage/mappic/water_07.png"><img v-else src="../assets/homepage/mappic/water_08.png"></div>
-          <div>重大项目</div>
+          <div><img v-if="tabmapactive!=4" src="@/assets/homepage/mappic/shantang_02.png"><img v-else src="@/assets/homepage/mappic/shantan_01.png"></div>
+          <div>山塘</div>
         </div>
         <div :class="tabmapactive==5?'activetabindex':'noactivetabindex'" @click="inittabmapactive(5)">
-          <div><img v-if="tabmapactive!=5" src="../assets/homepage/mappic/water_09.png"><img v-else src="../assets/homepage/mappic/water_10.png"></div>
-          <div>水库问题</div>
+          <div><img v-if="tabmapactive!=5" src="@/assets/homepage/mappic/xsd_02.png"><img v-else src="@/assets/homepage/mappic/xsd_01.png"></div>
+          <div>小水电</div>
         </div>
         <div :class="tabmapactive==6?'activetabindex':'noactivetabindex'" @click="inittabmapactive(6)">
-          <div><img v-if="tabmapactive!=6" src="../assets/homepage/mappic/water_11.png"><img v-else src="../assets/homepage/mappic/water_12.png"></div>
+          <div><img v-if="tabmapactive!=6" src="@/assets/homepage/mappic/water_11.png"><img v-else src="@/assets/homepage/mappic/water_12.png"></div>
           <div>水库水质</div>
         </div>
         <div :class="tabmapactive==7?'activetabindex':'noactivetabindex'" @click="inittabmapactive(7)">
-          <div><img v-if="tabmapactive!=7" src="../assets/homepage/mappic/water_13.png"><img v-else src="../assets/homepage/mappic/water_14.png"></div>
+          <div><img v-if="tabmapactive!=7" src="@/assets/homepage/mappic/water_13.png"><img v-else src="@/assets/homepage/mappic/water_14.png"></div>
           <div>人员分布</div>
         </div>
         <div :class="tabmapactive==8?'activetabindex':'noactivetabindex'" @click="inittabmapactive(8)">
-          <div><img v-if="tabmapactive!=8" src="../assets/homepage/mappic/water_15.png"><img v-else src="../assets/homepage/mappic/water_16.png"></div>
+          <div><img v-if="tabmapactive!=8" src="@/assets/homepage/mappic/water_15.png"><img v-else src="@/assets/homepage/mappic/water_16.png"></div>
           <div>监测预警</div>
+        </div>
+      </div>
+      <div v-if="warnlistshow==true" class="warnpopul">
+        <div class="titlebox">
+          <span>告警提醒</span>
+          <span @click="colsepop"><img src="@/assets/homepage/onemapimages/warn_05.png"></span>
+        </div>
+        <div class="warnnumber">
+          <span />
+          <span>当前有{{ watercoordinatelist.length }}个报警信息...</span>
+        </div>
+        <div class="warnlist">
+          <div>
+            <div v-for="(item,index) in watercoordinatelist" :key="index" :class="index==activeindex?'activeback':''" @click="indexactive(index)">
+              <div>
+                <div>
+                  <img src="@/assets/homepage/onemapimages/warn_04.png">
+                </div>
+                <div>
+                  <div v-text="item.reservoirName" />
+                  <div v-text="item.reservoirName" />
+                </div>
+              </div>
+              <div>
+                <img src="@/assets/homepage/onemapimages/warn_06.png">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     <onemappage v-if="tabActive==2" />
-    <div class="titlepre"><img src="../assets/homepage/header/headermiddle.png"></div>
+    <div class="titlepre"><img src="@/assets/homepage/header/headermiddle.png"></div>
+    <!-- //告警弹泡 -->
   </div>
 </template>
 
 <script>
 // import { mapGetters } from 'vuex'
-import mapgaode from '@/components/MapGaoDe.vue'
-import onemappage from './OneMapPage'
+import mapgaode from '../homepage/components/MapGaoDe'
+import onemappage from '../onepage/index'
+import { fetchrankdata, fetchprojectdata, fetchdangerouswaterdata_one, fetchdangerouswaterdata_two, fetchwatercountdata, fetchsafetyappraisaldata, fetchrealtimeinformationdata_one, fetchrealtimeinformationdata_two, fetchrealtimeinformationdata_three, fetcharealistdata_present, fetcharealistdata_last, fetchreservoirdistributiondata, fetchreservoirwaterleveldata, fetchwaterlevelandqualitydata, fetchwaternumberdata, fecthbuildprojectdata } from '@/api/homepage'
 // eslint-disable-next-line no-unused-vars
 import echartsLiquidfill from 'echarts-liquidfill'
 export default {
@@ -226,27 +321,196 @@ export default {
   data() {
     return {
       // 头部数据
+      areaId: 2678,
       tabActive: '1',
+      // 工程规模类型统计
+      timeyearvalue: '',
+      projectscope: [],
+      projectscopetotal: '',
+      // 病险水库情况
+      evalResultData: [],
+      forceData: [],
+      namelist: [],
       // 排名统计分析
       rankanalyse: '1',
       rankanalyseecharts: null,
+      ranklistecharts: [],
+      // 水位统计
+      normalnumber: '',
+      wornnumber: '',
+      wornrate: '',
       // 地图搜索
-      regionvalue: '',
-      regionoptions: [{ id: '', name: '杭州市' }],
+      regionvalue: 2678,
+      regionoptions: [],
       watergradevalue: '',
-      watergradeoptions: [{ value: '', label: '全部等级' }],
-      watertyperadiovalue: 1,
+      watergradeoptions: [{ value: '', label: '全部等级' }, { value: '1', label: '国家级' }, { value: '2', label: '省级' }, { value: '3', label: '市级' }, { value: '4', label: '县级' }, { value: '5', label: '镇级' }, { value: '6', label: '村级' }],
+      watertyperadiovalue: 3,
       serchinputvalue: '',
-      tabmapactive: 1
+      tabmapactive: 8,
+      warnlistshow: false,
+      activeindex: '',
+      // 病险水库情况
+      itemtitle: '',
+      itemvalue: '',
+      // 安全鉴定
+      evalStatusData: '',
+      evalStatustotalnumber: '',
+      evalStatusnumber: '',
+      evalStatusrate: '',
+      // 实时信息
+      realtimeinformationvalue: 1,
+      tableData: [],
+      animate: true,
+      interval: null,
+      warnlist: [],
+      watercoordinatelist: [],
+      waternumber: [],
+      watertotalnumber: ''
     }
   },
-  computed: {},
+  created() {
+    // this.mapwarnlist()
+    this.getAreaGradeList()
+    this.waternumber_v()
+    // this.interval = setInterval(this.scroll, 2000)
+  },
   mounted() {
-    this.initrankanalyseecharts()
-    this.initliquidFill()
-    this.initpanelecharts()
+    var that = this
+    // 工程规模
+    that.fetchProjectData()
+    // 除险加固
+    that.fetchDangerousWaterData()
+    // p排名
+    that.rankanalysechange(1)
+    // 水位统计
+    that.fecthWaterlevelStatistics()
+    // 安全鉴定
+    that.fetchSafetyAppraisalData()
+    // this.initpieonecharts()
+    // 实时信息
+    that.fecthTableData()
+    // 水库分布
+    that.inittabmapactive(that.tabmapactive)
   },
   methods: {
+    // 获取年
+    getYearValue() {
+      var date = new Date()
+      this.timeyearvalue = date.getFullYear()
+    },
+    // 工程规模
+    fetchProjectData() {
+      fetchprojectdata({ areaId: this.areaId, year: this.timeyearvalue }).then(res => {
+        for (var i = 0; i < res.scopeData.length; i++) {
+          this.projectscope.push(res.scopeData[i].scopeNum)
+        }
+        this.projectscopetotal = res.total
+      })
+    },
+    // 病险水库
+    fetchDangerousWaterData() {
+      fetchdangerouswaterdata_one({ areaId: this.areaId, year: this.timeyearvalue, evalResults: '2,3' }).then(res => {
+        this.evalResultData = res.evalResultData
+        fetchdangerouswaterdata_two({ areaId: this.areaId, year: this.timeyearvalue, forceStatus: '2,3' }).then(res => {
+          this.forceData = []
+          for (var i = 0; i < res.forceData.length; i++) {
+            if (res.forceData[i].forceName === '已完成') {
+              this.forceData.push({ forceName: '除险加固已完成', forceNum: res.forceData[i].forceNum })
+            }
+            if (res.forceData[i].forceName === '已开工') {
+              this.forceData.push({ forceName: '除险加固已开工', forceNum: res.forceData[i].forceNum })
+            }
+          }
+          this.initpieonecharts()
+        })
+      })
+    },
+    // 水位统计
+    fecthWaterlevelStatistics() {
+      fetchwatercountdata({ areaId: this.areaId }).then(res => {
+        for (var i = 0; i < res.list.length; i++) {
+          if (res.list[i].type === '告警') {
+            this.wornnumber = res.list[i].num
+            this.wornrate = res.list[i].rate
+          }
+          if (res.list[i].type === '正常') {
+            this.normalnumber = res.list[i].num
+          }
+        }
+        this.initliquidFill()
+      })
+    },
+    // 安全鉴定
+    fetchSafetyAppraisalData() {
+      fetchsafetyappraisaldata({ areaId: this.areaId, year: this.timeyearvalue }).then(res => {
+        this.evalStatustotalnumber = res.evalStatusData[0].evalStatusNum + res.evalStatusData[1].evalStatusNum
+        for (var i = 0; i < res.evalStatusData.length; i++) {
+          if (res.evalStatusData[i].evalStatusName === '已完成任务 ') {
+            this.evalStatusnumber = res.evalStatusData[i].evalStatusNum
+            this.evalStatusrate = Number(res.evalStatusData[i].evalStatusRate)
+          }
+        }
+        this.initpanelecharts()
+      })
+    },
+    // 实时信息
+    radiochangevalue() {
+      this.fecthTableData()
+    },
+    fecthTableData() {
+      if (this.realtimeinformationvalue === 1) {
+        fetchrealtimeinformationdata_one({ areaId: this.areaId, reservoirIds: '13,246,429,643', pageNum: '1', pageSize: '5' }).then(res => {
+          this.tableData = res.list
+        })
+      } else if (this.realtimeinformationvalue === 2) {
+        fetchrealtimeinformationdata_two({ areaId: this.areaId, reservoirIds: '13,246,429,643', pageNum: '1', pageSize: '5' }).then(res => {
+          this.tableData = res.list
+        })
+      } else if (this.realtimeinformationvalue === 3) {
+        fetchrealtimeinformationdata_three({ areaId: this.areaId, type: '2', pageNum: '1', pageSize: '5' }).then(res => {
+          this.tableData = res.list
+        })
+      } else {
+        this.tableData = []
+      }
+    },
+    // 地图预警信息
+    mapwarnlist() {
+      fetchrealtimeinformationdata_three({ areaId: this.regionvalue, type: '2', reservoirName: this.serchinputvalue, reservoirLevel: this.watergradevalue }).then(res => {
+        this.watercoordinatelist = res.list
+        if (this.watercoordinatelist.length > 0) {
+          this.warnlistshow = true
+        }
+      })
+    },
+    // 关闭弹泡
+    colsepop() {
+      this.warnlistshow = false
+    },
+    indexactive(index) {
+      this.activeindex = index
+    },
+    // table滚动
+    mouseenter() {
+      // var that = this
+      // clearInterval(that.interval)
+      // that.interval = null
+    },
+    mouseleave() {
+      // var that = this
+      // this.interval = setInterval(that.scroll, 2000)
+    },
+    // table滚动
+    scroll() {
+      this.animate = !this.animate
+      var that = this // 在异步函数中会出现this的偏移问题，此处一定要先保存好this的指向
+      setTimeout(function() {
+        that.tableData.push(that.tableData[0])
+        that.tableData.shift()
+        that.animate = !that.animate
+        setTimeout(function() {}, 5000) // 这个地方如果不把animate 取反会出现消息回滚的现象，此时把ul 元素的过渡属性取消掉就可以完美实现无缝滚动的效果了
+      }, 2000)
+    },
     // 头部切换
     tabchangeindex(v) {
       this.tabActive = v
@@ -254,9 +518,21 @@ export default {
     // 排名统计分析
     rankanalysechange(v) {
       this.rankanalyse = v
+      if (this.rankanalyse == 1 || this.rankanalyse == 2) {
+        this.ranklistecharts = []
+        fetchrankdata({ areaId: '2678', rankingStatus: this.rankanalyse }).then(res => {
+          this.ranklistecharts.push(['项目', '已开工', '已完工'])
+          for (var i = 0; i < res.length; i++) {
+            this.ranklistecharts.push([res[i].areaName, res[i].startNum, res[i].finishNum])
+          }
+          console.log(this.ranklistecharts)
+          this.initrankanalyseecharts()
+        })
+      } else {
+        this.$message('该功能正在开发中')
+      }
     },
     initrankanalyseecharts() {
-      // console.log('123')
       var rankchart = this.echarts.init(document.getElementById('rankanalyseecharts'))
       var option = {
         legend: {
@@ -272,13 +548,7 @@ export default {
           containLabel: true
         },
         dataset: {
-          source: [
-            ['项目', '在建项目数', '考核项目数', '完成项目数'],
-            ['杭州市', 43.3, 85.8, 93.7],
-            ['温州市', 83.1, 73.4, 55.1],
-            ['舟山市', 86.4, 65.2, 82.5],
-            ['嘉兴市', 72.4, 53.9, 39.1]
-          ]
+          source: this.ranklistecharts
         },
         xAxis: {
           type: 'category',
@@ -338,6 +608,9 @@ export default {
     },
     initliquidFill() { // 方法
       var liquid = this.echarts.init(document.getElementById('liquidfill'))
+      var ratevalue = []
+      ratevalue.push(this.wornrate)
+      ratevalue.push(this.wornrate)
       liquid.setOption({
         title: { // 标题
           // text: '水球图',
@@ -352,7 +625,25 @@ export default {
         },
         series: [{
           type: 'liquidFill', // 类型
-          data: [0.7, 0.5, 0.4], // 数据是个数组 数组的每一项的值是0-1
+          name: '告警率',
+          data: ratevalue, // 数据是个数组 数组的每一项的值是0-1
+          label: {
+            show: true,
+            color: '#fff', // 和边框颜色同色
+            fontSize: 26,
+            normal: {
+              show: true,
+              position: ['50%', '50%'], // 圈中文字的位置，If it is a string, {a} refers to series name, {b} to data name, and {c} to data value.
+              formatter: function(param) {
+                return (param.value) * 100 + '%' + '\n' + param.seriesName
+              },
+              color: '#fff', // 默认背景下的文字颜色
+              // insideColor: '#fff', // 水波背景下的文字颜色
+              fontSize: 24
+              // fontFamily: 'PangMenZhengDaoBiaoTiTi'
+            }
+          },
+
           outline: {
             show: true, // 是否显示轮廓 布尔值
             borderDistance: 0, // 外部轮廓与图表的距离 数字
@@ -408,7 +699,7 @@ export default {
     // 安全鉴定
     initpanelecharts() {
       var panelEcharts = this.echarts.init(document.getElementById('panelEcharts'))
-      var dataArr = 3.4
+      var dataArr = this.evalStatusrate
       var colorSet = {
         color: '#007cff'
       }
@@ -461,7 +752,7 @@ export default {
           detail: {
             formatter: function(value) {
               if (value !== 0) {
-                return parseInt(value * 10)
+                return parseInt(value)
               } else {
                 return 0
               }
@@ -725,11 +1016,248 @@ export default {
     },
     // 地图中心点击事件
     inittabmapactive(v) {
-      if (this.tabmapactive === v) {
-        return false
-      } else {
-        this.tabmapactive = v
+      if (v !== 8) {
+        this.warnlistshow = false
       }
+      if (v === 1) {
+        this.tabmapactive = v
+        this.reservoirdistribution()
+      } else if (v === 2) {
+        this.tabmapactive = v
+        this.reservoirwaterlevel()
+      } else if (v === 3) {
+        this.tabmapactive = v
+        this.buildproject()
+      } else if (v === 4) {
+        // this.tabmapactive = v
+        // this.mapwarnlist()
+        this.$message('该功能正在开发中')
+      } else if (v === 5) {
+        this.$message('该功能正在开发中')
+      } else if (v === 6) {
+        this.tabmapactive = v
+        this.waterlevelandquality()
+      } else if (v === 7) {
+        // this.tabmapactive = v
+        // this.waterlevelandquality()
+        this.$message('该功能正在开发中')
+      } else if (v === 8) {
+        this.tabmapactive = v
+        this.mapwarnlist()
+      } else {
+        this.$message('该功能正在开发中')
+      }
+    },
+    getAreaGradeList() {
+      this.regionoptions = []
+      fetcharealistdata_present({ areaId: this.areaId }).then(res => {
+        for (var i = 0; i < res.length; i++) {
+          this.regionoptions.push(res[i])
+        }
+        fetcharealistdata_last({ parentId: this.areaId }).then(response => {
+          for (var j = 0; j < response.length; j++) {
+            this.regionoptions.push(response[j])
+          }
+        })
+      })
+    },
+    // 单选
+    watertypechange() {
+      this.inittabmapactive(this.tabmapactive)
+    },
+    // 区划改变
+    regionvaluechange() {
+      this.inittabmapactive(this.tabmapactive)
+      this.waternumber_v()
+    },
+    // 水库等级
+    watergradevaluechange() {
+      this.inittabmapactive(this.tabmapactive)
+      this.waternumber_v()
+    },
+    // 搜索框
+    waternamevalue() {
+      if (this.tabmapactive === 1) {
+        this.reservoirdistribution()
+      } else if (this.tabmapactive === 2) {
+        this.reservoirwaterlevel()
+      } else if (this.tabmapactive === 3) {
+        this.buildproject()
+      } else if (this.tabmapactive === 6) {
+        this.waterlevelandquality()
+      } else if (this.tabmapactive === 8) {
+        this.mapwarnlist()
+      }
+    },
+    // 水库分布
+    reservoirdistribution() {
+      fetchreservoirdistributiondata({ areaId: this.regionvalue, reservoirName: this.serchinputvalue, reservoirType: 3, reservoirLevel: this.watergradevalue, pageSize: 999 }).then(res => {
+        this.watercoordinatelist = res.list
+      })
+    },
+    // 水库水位
+    reservoirwaterlevel() {
+      fetchreservoirwaterleveldata({ areaId: this.regionvalue, reservoirName: this.serchinputvalue, reservoirType: '', reservoirLevel: this.watergradevalue, pageSize: 999, listType: 1 }).then(res => {
+        this.watercoordinatelist = res.list
+      })
+    },
+    // 在建项目
+    buildproject() {
+      fecthbuildprojectdata({ areaId: this.regionvalue, forceName: this.serchinputvalue, progressStatus: 1, reservoirLevel: this.watergradevalue }).then(res => {
+        this.watercoordinatelist = res.list
+        console.log(res)
+      })
+    },
+    // 水库水质
+    waterlevelandquality() {
+      fetchwaterlevelandqualitydata({ areaId: this.regionvalue, reservoirName: this.serchinputvalue, reservoirType: this.watertyperadiovalue, reservoirLevel: this.watergradevalue, pageSize: 999 }).then(res => {
+        this.watercoordinatelist = res.list
+      })
+    },
+    // 水库数目
+    waternumber_v() {
+      fetchwaternumberdata({ areaId: this.regionvalue, reservoirLevel: this.watergradevalue }).then(res => {
+        this.watertotalnumber = 0
+        this.waternumber = []
+        for (var i = 0; i < res.list.length; i++) {
+          if (res.list[i].type === '水库') {
+            this.waternumber.push(res.list[i].num)
+          } else if (res.list[i].type === '山塘') {
+            this.waternumber.push(res.list[i].num)
+          } else if (res.list[i].type === '小水电') {
+            this.waternumber.push(res.list[i].num)
+          }
+          // this.watertotalnumber += res.list[i].num
+        }
+      })
+    },
+    // 病险水库echarts
+    initpieonecharts() {
+      var that = this
+      var pieonecharts = this.echarts.init(document.getElementById('pieonecharts'))
+      var data = []
+      var datatwo = []
+      var color = ['#01fe13', '#0de7ed', '#00b7ff', '#ee6806']
+      var colorone = ['#01fe13', '#0de7ed']
+      var colortwo = ['#00b7ff', '#ee6806']
+      for (var i = 0; i < this.evalResultData.length; i++) {
+        data.push({
+          value: this.evalResultData[i].evalResultNum,
+          name: this.evalResultData[i].evalResultName,
+          itemStyle: {
+            normal: {
+              borderWidth: 5,
+              shadowBlur: 20,
+              borderColor: colorone[i],
+              shadowColor: colorone[i]
+            }
+          }
+        }, {
+          value: 0.3,
+          name: '',
+          itemStyle: {
+            normal: {
+              label: {
+                show: false
+              },
+              labelLine: {
+                show: false
+              },
+              color: 'rgba(0, 0, 0, 0)',
+              borderColor: 'rgba(0, 0, 0, 0)',
+              borderWidth: 0
+            }
+          }
+        })
+      }
+      var seriesOptionOne = {
+        name: '',
+        type: 'pie',
+        clockWise: false,
+        labelLine: {
+          show: false
+        },
+        label: {
+          show: false
+        },
+        radius: [105, 109],
+        center: ['35%', '50%'],
+        hoverAnimation: false,
+        data: data
+      }
+
+      for (var j = 0; j < this.forceData.length; j++) {
+        datatwo.push({
+          value: this.forceData[j].forceNum,
+          name: this.forceData[j].forceName,
+          itemStyle: {
+            normal: {
+              borderWidth: 5,
+              shadowBlur: 20,
+              borderColor: colortwo[j],
+              shadowColor: colortwo[j]
+            }
+          }
+        }, {
+          value: 1,
+          name: '',
+          itemStyle: {
+            normal: {
+              label: {
+                show: false
+              },
+              labelLine: {
+                show: false
+              },
+              color: 'rgba(0, 0, 0, 0)',
+              borderColor: 'rgba(0, 0, 0, 0)',
+              borderWidth: 0
+            }
+          }
+        })
+      }
+      var seriesOptionTwo = {
+        name: '',
+        type: 'pie',
+        clockWise: false,
+        labelLine: {
+          show: false
+        },
+        label: {
+          show: false
+        },
+        radius: [80, 84],
+        center: ['35%', '50%'],
+        hoverAnimation: false,
+        data: datatwo
+      }
+      var option = {
+        color: color,
+        tooltip: {
+          trigger: 'item',
+          formatter: (params) => { // 格式化数据的函数
+            this.itemtitle = params.data.name
+            this.itemvalue = params.data.value
+          }
+        },
+        legend: {
+          orient: 'vertical',
+          data: ['二类坝', '三类坝', '除险加固已完成', '除险加固已开工'],
+          right: 52,
+          bottom: 87,
+          align: 'left',
+          textStyle: {
+            color: '#fff'
+          },
+          itemGap: 20
+        },
+        series: [seriesOptionOne, seriesOptionTwo]
+      }
+      pieonecharts.setOption(option)
+      pieonecharts.on('mouseout', function(params) {
+        that.itemtitle = ''
+        that.itemvalue = ''
+      })
     }
   }
 }
@@ -738,13 +1266,8 @@ export default {
 [v-cloak] {
   display: none;
 }
-// .body,html{
-//   background: #0e2339;
-//   padding: 0px;
-//   margin: 0px;
-// }
 .homepage {
-  width: 1894px;
+  width: 1920px;
   height: auto;
   background-color: #0d2038;
   .header {
@@ -752,14 +1275,14 @@ export default {
     width: 100%;
     position: relative;
     overflow: hidden;
-    background: url("../assets/homepage/header/headermain.png") no-repeat 0px 0px;
+    background: url("../../assets/homepage/header/headermain.png") no-repeat 0px 0px;
     .topmove{
      width: 569px;
      height: 5px;
      position: absolute;
      top: 0px;
      left: -500px;
-     background: url("../assets/homepage/header/header_01.png") no-repeat 0px 0px;
+     background: url("../../assets/homepage/header/header_01.png") no-repeat 0px 0px;
      animation:guangmove 6s 2s infinite;
      -moz-animation:guangmove 6s 2s infinite; /* Firefox */
      -webkit-animation:guangmove 6s 2s infinite; /* Safari and Chrome */
@@ -771,7 +1294,7 @@ export default {
        position: absolute;
        top: 52px;
        left: -500px;
-       background: url("../assets/homepage/header/header_01.png") no-repeat 0px 0px;
+       background: url("../../assets/homepage/header/header_01.png") no-repeat 0px 0px;
        animation:guangmove 6s 2s infinite;
        -moz-animation:guangmove 6s 2s infinite; /* Firefox */
        -webkit-animation:guangmove 6s 2s infinite; /* Safari and Chrome */
@@ -783,14 +1306,14 @@ export default {
       position: absolute;
       top: 12px;
       left: 20px;
-      background: url("../assets/homepage/header/header_08.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/header/header_08.png") no-repeat 0px 0px;
       cursor: pointer;
       text-align: center;
       > span:nth-child(1) {
         display: inline-block;
         width: 19px;
         height: 19px;
-        background: url("../assets/homepage/header/header_03.png") no-repeat 0px 0px;
+        background: url("../../assets/homepage/header/header_03.png") no-repeat 0px 0px;
         position: absolute;
         top: 8px;
       }
@@ -800,7 +1323,7 @@ export default {
         font-size: 16px;
       }
       .iconactive {
-        background: url("../assets/homepage/header/header_04.png") no-repeat 0px 0px !important;
+        background: url("../../assets/homepage/header/header_04.png") no-repeat 0px 0px !important;
       }
     }
     .tabtwo {
@@ -809,14 +1332,14 @@ export default {
       position: absolute;
       top: 12px;
       left: 168px;
-      background: url("../assets/homepage/header/header_08.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/header/header_08.png") no-repeat 0px 0px;
       cursor: pointer;
       text-align: center;
       > span:nth-child(1) {
         display: inline-block;
         width: 19px;
         height: 19px;
-        background: url("../assets/homepage/header/header_14.png") no-repeat 0px 0px;
+        background: url("../../assets/homepage/header/header_14.png") no-repeat 0px 0px;
         position: absolute;
         top: 9px;
       }
@@ -826,17 +1349,17 @@ export default {
         font-size: 16px;
       }
       .iconactive {
-        background: url("../assets/homepage/header/header_15.png") no-repeat 0px 0px !important;
+        background: url("../../assets/homepage/header/header_15.png") no-repeat 0px 0px !important;
       }
     }
     .tabactive {
-      background: url("../assets/homepage/header/header_09.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/header/header_09.png") no-repeat 0px 0px;
     }
     .timepeal {
       position: absolute;
       width: 262px;
       height: 35px;
-      background: url("../assets/homepage/header/header_02.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/header/header_02.png") no-repeat 0px 0px;
       left: 405px;
       top: 11px;
       text-align: center;
@@ -844,19 +1367,13 @@ export default {
       font-family: "PangMenZhengDaoBiaoTiTi";
       font-size: 19px;
     }
-    // .titlepre {
-    //   margin: 0 auto;
-    //   height: 100%;
-    //   width: 524px;
-    //   text-align: center;
-    // }
     .weather {
       position: absolute;
       left: 1255px;
       width: 435px;
       top: 11px;
       height: 35px;
-      background: url("../assets/homepage/header/header_05.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/header/header_05.png") no-repeat 0px 0px;
       display: flex;
       flex-direction: row;
       justify-content: space-around;
@@ -900,7 +1417,7 @@ export default {
       height: 33px;
       line-height: 33px;
       text-align: center;
-      background: url("../assets/homepage/header/header_13.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/header/header_13.png") no-repeat 0px 0px;
       font-size: 17px;
       font-weight: bold;
       cursor: pointer;
@@ -910,7 +1427,7 @@ export default {
     position: absolute;
     height: 120px;
     width:600px;
-    top: 8px;
+    top: 0px;
     left: 657px;
   }
   .maincontent {
@@ -921,7 +1438,7 @@ export default {
       position: absolute;
       width: 500px;
       height: 316px;
-      background: url("../assets/homepage/mappic/boxpanel.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/mappic/boxpanel.png") no-repeat 0px 0px;
     }
     .panelone{
       top: 20px;
@@ -953,7 +1470,7 @@ export default {
       >div:nth-child(2){
         width: 425px;
         height: 253px;
-        background: url("../assets/homepage/mappic/guang_02.png") no-repeat 0px 0px;
+        background: url("../../assets/homepage/mappic/guang_02.png") no-repeat 0px 0px;
         margin: 15px auto;
         position: relative;
         >div{
@@ -976,7 +1493,7 @@ export default {
            left: -200px;
            width: 122px;
            height: 110px;
-           background: url("../assets/homepage/mappic/guang_01.png") no-repeat 0px 0px;
+           background: url("../../assets/homepage/mappic/guang_01.png") no-repeat 0px 0px;
            animation:projectbgmove 7s infinite;
            -moz-animation:projectbgmove 7s infinite; /* Firefox */
            -webkit-animation:projectbgmove 7s infinite; /* Safari and Chrome */
@@ -1032,7 +1549,7 @@ export default {
           position: absolute;
           height: 100px;
           width: 100px;
-          background: url("../assets/homepage/mappic/guang_03.png") no-repeat 0px 0px;
+          background: url("../../assets/homepage/mappic/guang_03.png") no-repeat 0px 0px;
           margin: 0;
           padding: 0;
           left: 164px;
@@ -1083,7 +1600,7 @@ export default {
           float: left;
           font-size: 14px;
           cursor: pointer;
-          background: url("../assets/homepage/mappic/paimnotab.png") no-repeat 0px 0px;
+          background: url("../../assets/homepage/mappic/paimnotab.png") no-repeat 0px 0px;
         }
         >div:nth-child(2){
           margin: 0 8px;
@@ -1092,7 +1609,7 @@ export default {
           margin-right:8px;
         }
         .rankanalyseactive{
-          background: url("../assets/homepage/mappic/paimtab.png") no-repeat 0px 0px;
+          background: url("../../assets/homepage/mappic/paimtab.png") no-repeat 0px 0px;
           color: #0dcfd8;
         }
       }
@@ -1105,7 +1622,54 @@ export default {
     .box_three{
       top: 690px;
       left: 17px;
-    }
+      >div:nth-child(2){
+        width: 500px;
+        height: 285px;
+        position: relative;
+        >div:nth-child(1){
+          width: 500px;
+          height: 285px;
+          position: absolute;
+          top: 0;
+          left: 0px;
+        }
+        >div:nth-child(2){
+         width: 108px;
+         height: 108px;
+         position: absolute;
+         background: url('../../assets/homepage/mappic/echartsrate.png') no-repeat 0px 0px;
+         top: 91px;
+         left: 121px;
+         animation:rotatespin 8s infinite;
+         -moz-animation:rotatespin 8s infinite; /* Firefox */
+         -webkit-animation:rotatespin 8s infinite; /* Safari and Chrome */
+         -o-animation:rotatespin 8s infinite; /* Opera */
+         }
+        >div:nth-child(3){
+           width: 108px;
+           height: 108px;
+           position: absolute;
+           top: 91px;
+           left: 121px;
+           >span:nth-child(1){
+             width: 100%;
+             display: inline-block;
+             margin-top: 23px;
+             text-align: center;
+             line-height: 24px;
+             font-size: 14px;
+           }
+            >span:nth-child(2){
+             display: inline-block;
+             width: 100%;
+             text-align: center;
+             color: #01fe13;
+             font-size: 26px;
+             font-family: "PangMenZhengDaoBiaoTiTi";
+           }
+        }
+       }
+     }
     .box_four{
       top: 20px;
       right: 17px;
@@ -1118,15 +1682,15 @@ export default {
         position: absolute;
         width: 220px;
         height: 220px;
-        background: url("../assets/homepage/mappic/waterbac.png") no-repeat 0px 0px;
+        background: url("../../assets/homepage/mappic/waterbac.png") no-repeat 0px 0px;
         top: 62px;
         left: 50px;
         border-radius:50%;
         overflow: hidden;
-        animation:rotatespin 20s infinite;
-        -moz-animation:rotatespin 20s infinite; /* Firefox */
-        -webkit-animation:rotatespin 20s infinite; /* Safari and Chrome */
-        -o-animation:rotatespin 20s infinite; /* Opera */
+        animation:rotatespin 40s infinite;
+        -moz-animation:rotatespin 40s infinite; /* Firefox */
+        -webkit-animation:rotatespin 40s infinite; /* Safari and Chrome */
+        -o-animation:rotatespin 40s infinite; /* Opera */
       }
       .waternumber{
         width:170px;
@@ -1138,7 +1702,7 @@ export default {
         left:320px;
         animation:mymove 2.5s; -webkit-animation:mymove 2.5s;
         >div{
-          background: url("../assets/homepage/mappic/waternumber.png") no-repeat 0px 0px;
+          background: url("../../assets/homepage/mappic/waternumber.png") no-repeat 0px 0px;
           height: 84px;
           width:130px;
           >span{
@@ -1170,6 +1734,7 @@ export default {
             color: #ee6806;
             text-shadow:0px 0px 20px #ee6806;
             font-family: "PangMenZhengDaoBiaoTiTi";
+
           }
         }
       }
@@ -1230,13 +1795,28 @@ export default {
     .box_six{
       top: 690px;
       right: 17px;
+      >div:nth-child(2){
+        height: 32px;
+        margin-top: 22px;
+      }
+      >div:nth-child(3){
+        .el-table{
+        color: #fff;
+        tr{
+           background: #0a3858;
+            th{
+          background: #0a3858;
+        }
+        }
+        }
+      }
     }
     .fl{
       overflow: hidden;
       position: absolute;
       width: 500px;
       height: 316px;
-      background: url("../assets/homepage/mappic/boxbackground.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/mappic/boxbackground.png") no-repeat 0px 0px;
        >div:nth-child(1){
         height: 32px;
         width: 100%;
@@ -1302,7 +1882,7 @@ export default {
       top: 39px;
       left: 50%;
       margin-left: -420px;
-      background: url("../assets/homepage/mappic/selectbackground.png") no-repeat 0px 0px;
+      background: url("../../assets/homepage/mappic/selectbackground.png") no-repeat 0px 0px;
       .el-select{
         width: 120px;
         top: 15px;
@@ -1321,10 +1901,12 @@ export default {
           >div:nth-child(1){
             font-size: 13px;
             text-align: left;
+            text-align: center;
           }
           >div:nth-child(2){
             line-height: 20px;
-            text-align: left;
+            // text-align: left;
+             text-align: center;
             >span{
                font-size: 14px;
               display: inline-block;
@@ -1347,11 +1929,11 @@ export default {
         }
          >div:nth-child(2){
           width: 65px;
-          margin: 0 20px;
+          margin: 0 10px;
         }
          >div:nth-child(4){
           width: 68px;
-          margin: 0 20px;
+          margin: 0 10px;
         }
       }
       .radiobox{
@@ -1364,8 +1946,8 @@ export default {
            margin-right: 38px;
          }
       }
-      .serchinputvalue{
-        width: 140px;
+      .serchinputvalues{
+        width: 240px;
         float: right;
         top: 17px;
         margin-right: 20px;
@@ -1425,7 +2007,6 @@ export default {
           height: 54px;
           border-radius: 50%;
           border:2px solid #0dfbfd;
-          // box-shadow:-3px -2px 5px #0dfbfd;
           -webkit-box-shadow:0px 0px 9px rgba(13,251,253,0.79) inset;
           -moz-box-shadow:0px 0px 9px rgba(13,251,253,0.79) inset;
           box-shadow:0px 0px 9px rgba(13,251,253,0.79) inset;
@@ -1451,7 +2032,6 @@ export default {
           height: 50px;
           border-radius: 50%;
           border:2px solid #00b7ff;
-          // box-shadow:-3px -2px 5px #00b7ff;
           -webkit-box-shadow:0px 0px 9px rgba(0,182,255,0.79) inset;
           -moz-box-shadow:0px 0px 9px rgba(0,182,255,0.79) inset;
           box-shadow:0px 0px 9px rgba(0,182,255,0.79) inset;
@@ -1467,6 +2047,108 @@ export default {
           text-align: center;
           line-height: 30px;
           margin-top: 10px;
+        }
+      }
+    }
+    .warnpopul{
+      width: 375px;
+      height: 284px;
+      position: absolute;
+      left: 50%;
+      margin-left: -187px;
+      top: 38%;
+      background: url('../../assets/homepage/onemapimages/warn_03.png') no-repeat 0px 0px;
+      .titlebox{
+        height: 60px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        justify-items: center;
+        >span{
+          display: inline-block;
+          height: 100%;
+          padding: 24px 23px;
+        }
+        >span:nth-child(2){
+          cursor: pointer;
+        }
+      }
+      .warnnumber{
+        width: 340px;
+        height: 36px;
+        margin:0 auto;
+        background: url('../../assets/homepage/onemapimages/warn_01.png') no-repeat -3px -7px;
+        text-align: center;
+        >span{
+          line-height: 36px;
+        }
+        >span:nth-child(1){
+          height: 24px;
+          width: 25px;
+          display: inline-block;
+          background: url('../../assets/homepage/onemapimages/warn_02.png') no-repeat 0px 8px;
+        }
+      }
+      .warnlist{
+        margin-top: 15px;
+        height: 170px;
+       overflow: hidden;
+        >div{
+          height: 170px;
+          width: 395px;
+          overflow-x: hidden;
+          >div{
+            cursor: pointer;
+            height: 66px;
+            >div{
+              float: left;
+               height: 100%;
+            }
+            >div:nth-child(1){
+              height: 42px;
+              width: 300px;
+              margin-top: 13px;
+              >div{
+                height: 100%;
+                float: left;
+                margin: auto;
+              }
+              >div:nth-child(1){
+                width:44px;
+                margin-left: 24px;
+              }
+              >div:nth-child(2){
+                margin-left:10px;
+                >div:nth-child(1){
+                  font-size: 16px;
+                }
+                  >div:nth-child(2){
+                  font-size: 13px;
+                  color:#e1ccbd;
+                  overflow:hidden;
+                  text-overflow:ellipsis;
+                  white-space:nowrap;
+                }
+              }
+            }
+             >div:nth-child(2){
+              width:70px;
+              height: 42px;
+              margin-top: 13px;
+              text-align: center;
+              img{
+                margin-top: 12px;
+                cursor: pointer;
+              }
+            }
+          }
+          .activeback{
+            background: -webkit-linear-gradient(left bottom,#983337, rgb(225,0,0,0.06));
+            background: -o-linear-gradient(left bottom,#983337, rgb(225,0,0,0.06));
+            background: -moz-linear-gradient(left bottom,#983337, rgb(225,0,0,0.06));
+            background: -mos-linear-gradient(left bottom,#983337, rgb(225,0,0,0.06));
+            background: linear-gradient(left bottom,#983337, rgb(225,0,0,0.06));
+          }
         }
       }
     }
@@ -1570,6 +2252,7 @@ export default {
   }
 </style>
 <style lang='scss'>
+.homepage{
   .middle_serach{
     .el-select{
       .el-input{
@@ -1614,7 +2297,7 @@ export default {
       opacity: 0;
     }
   }
-  .serchinputvalue{
+  .serchinputvalues{
         .el-input__inner{
           border-radius: 0px;
           border:1px solid #047bb1;
@@ -1625,5 +2308,92 @@ export default {
           font-size: 16px;
         }
       }
+  .box_six{
+    >div:nth-child(2){
+      .el-radio-group{
+        margin-left: 20px;
+        .el-radio{
+        margin-right: 15px;
+         .el-radio__input{
+         margin-right: 4px;
+         margin-left: 5px;
+        .el-radio__inner{
+          border: 1px solid #00b3fa;
+          background-color: #0f253d;
+        }
+       }
+       .el-radio__inner::after{
+         width:9px;
+         height: 9px;
+         background: #17e4f7;
+       }
+       .el-radio__label{
+        color: #fff;
+       }
+      }
+      }
+    }
+     >div:nth-child(3){
+        .el-table::before{
+          border-bottom:  1px solid red;
+          height: 2px
+        }
+        .el-table{
+        background-color: transparent;
+        // color: #fff;
+        .el-table__header{
+          tr{
+             background-color: transparent;
+            th{
+             text-align: center;
+             background: rgb(10,56,88,0.48);
+             padding: 0px;
+             line-height: 36px;
+           }
+          .is-leaf{
+            border: none;
+          }
+         }
+        }
+        .el-table__body-wrapper{
+          .el-table__body{
+            tr:hover>td {
+             background-color: #114696;
+            }
+            tr:nth-child(odd){
+            //  background-color:rgb(225,225,225,0)
+              // background-color: transparent;
+            }
+            tr:nth-child(even){
+              td{
+              text-align: center;
+              background: rgb(10,56,88,0.48);
+              padding: 0px;
+              height: 38px;
+             }
+            }
+            tr{
+             background-color: transparent;
+             td{
+              text-align: center;
+              // background: rgb(10,56,88,0.48);
+              padding: 0px;
+              height: 38px;
+              border: none;
+              .cell{
+                height: 38px;
+                line-height: 38px;
+              }
+             }
+             .is-leaf{
+               border: none;
+             }
+            }
+          }
+        }
+        }
+      }
+  }
+}
 </style>
 

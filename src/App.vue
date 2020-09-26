@@ -5,18 +5,15 @@
 </template>
 
 <style lang="scss">
-// .body,html{
-//   background: #0e2339;
-//   padding: 0px;
-//   margin: 0px;
-// }
+body,html{
+  margin: 0;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   // text-align: center;
   color: #fff;
-  background: #0e2339;
 }
 
 #nav {
